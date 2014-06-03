@@ -1,0 +1,15 @@
+{
+  "name": "angular-multirange-slider",
+  "description": "A multi-range slider directive for AngularJS",
+  "repository": "https://github.com/anandthakker/angular-multirange-slider",
+  "version": "0.0.1",
+  "dependencies": {
+    "coffee-script": "~1.7.1"
+  },
+  "devDependencies": {
+    "gulp": "~3.7.0",
+    "gulp-clean": "~0.3.0",
+    "gulp-coffee": "~2.0.0",
+    "gulp-util": "~2.2.16"
+  }
+}
