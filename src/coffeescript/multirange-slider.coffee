@@ -54,37 +54,48 @@ angular.module("multirangeSlider").directive("slider", ($document, $timeout)->
           left: x + "%"
           top: "-" + handle.prop("clientHeight")/2 + "px"
 
-    for mv,i in scope.model
-      do (mv, i)->
-        return if i == scope.model.length-1
-        handle = angular.element('<div class="slider-handle"></div>')
-        handle.css("position", "absolute")
-        handles.push(handle)
-        element.append(handle)
+    renderHandles = (model) ->
+      for mv,i in model
+        do (mv, i)->
+          return if i == model.length-1
+          handle = angular.element('<div class="slider-handle"></div>')
+          handle.css("position", "absolute")
+          handles.push(handle)
+          element.append(handle)
 
-        startX = 0
-        startPleft = startPright = 0
-        handle.on "mousedown", (event) ->
-          mousemove = (event) => scope.$apply ()->
-            dp = (event.screenX - startX) / element.prop("clientWidth") * pTotal
-            return if dp < -startPleft or dp > startPright
-            setP(i, startPleft+dp)
-            setP(i+1, startPright-dp)
-            updatePositions()
+          startX = 0
+          startPleft = startPright = 0
+          handle.on "mousedown", (event) ->
+            mousemove = (event) => scope.$apply ()->
+              dp = (event.screenX - startX) / element.prop("clientWidth") * pTotal
+              return if dp < -startPleft or dp > startPright
+              setP(i, startPleft+dp)
+              setP(i+1, startPright-dp)
+              updatePositions()
 
-          mouseup = ->
-            $document.unbind "mousemove", mousemove
-            $document.unbind "mouseup", mouseup
+            mouseup = ->
+              $document.unbind "mousemove", mousemove
+              $document.unbind "mouseup", mouseup
 
-          # Prevent default dragging of selected content
-          event.preventDefault()
-          startX = event.screenX
-          startPleft = getP(i)
-          startPright = getP(i+1)
-          $document.on "mousemove", mousemove
-          $document.on "mouseup", mouseup
+            # Prevent default dragging of selected content
+            event.preventDefault()
+            startX = event.screenX
+            startPleft = getP(i)
+            startPright = getP(i+1)
+            $document.on "mousemove", mousemove
+            $document.on "mouseup", mouseup
 
-    scope.$watch "model", updatePositions, true
+    onModelChange = (changedModel, model) ->
+      if changedModel.length != model.length
+        handles = []
+        element.children().remove()
+        renderHandles(changedModel)
+        
+      updatePositions()
+
+
+    renderHandles scope.model
+    scope.$watch "model", onModelChange, true
 )
 
 angular.module("multirangeSlider").controller("Ctrl", ($scope)->
