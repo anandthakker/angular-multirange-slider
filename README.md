@@ -10,10 +10,15 @@ Usage
 
 `bower install angular-multirange-slider`
 
-###Include it in your html:
+###Include it in your html and your js:
 ```html
-<script src="[YOUR BOWER COMPONENTS]/angular-multirange-slider/dist/multirange-slider.js"></script>
+<script src="YOUR_BOWER_COMPONENTS/angular-multirange-slider/dist/multirange-slider.js"></script>
 ```
+
+```
+angular.module("YOUR ANGULAR MODULE", ['at.multirange-slider'])
+```
+
 
 ###Use it:
 `<slider model="arrayOfValues"></slider>`

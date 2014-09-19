@@ -1,7 +1,8 @@
-angular.module("multirangeSlider", [])
+angular.module("at.multirange-slider", [])
 
 
-angular.module("multirangeSlider").directive("slider", ($document, $timeout)->
+angular.module("at.multirange-slider")
+.directive("slider", ($document, $timeout)->
   restrict: "E"
   scope:
     model: "="
@@ -96,16 +97,4 @@ angular.module("multirangeSlider").directive("slider", ($document, $timeout)->
 
     renderHandles scope.model
     scope.$watch "model", onModelChange, true
-)
-
-angular.module("multirangeSlider").controller("Ctrl", ($scope)->
-  $scope.probs = [
-    p: .1
-  ,
-    p: .5
-  ,
-    p: .4
-  ]
-
-  $scope.otherProbs = [3, 3, 4]
 )

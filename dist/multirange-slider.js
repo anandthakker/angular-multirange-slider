@@ -1,6 +1,6 @@
-angular.module("multirangeSlider", []);
+angular.module("at.multirange-slider", []);
 
-angular.module("multirangeSlider").directive("slider", function($document, $timeout) {
+angular.module("at.multirange-slider").directive("slider", function($document, $timeout) {
   return {
     restrict: "E",
     scope: {
@@ -120,17 +120,4 @@ angular.module("multirangeSlider").directive("slider", function($document, $time
       return scope.$watch("model", onModelChange, true);
     }
   };
-});
-
-angular.module("multirangeSlider").controller("Ctrl", function($scope) {
-  $scope.probs = [
-    {
-      p: .1
-    }, {
-      p: .5
-    }, {
-      p: .4
-    }
-  ];
-  return $scope.otherProbs = [3, 3, 4];
 });

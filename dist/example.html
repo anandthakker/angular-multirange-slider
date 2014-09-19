@@ -2,42 +2,53 @@
 <html>
 
 <head>
-
   <meta charset="UTF-8">
-
   <title>AngularJS responsive multi-range slider - CodePen</title>
-
-    <link rel="stylesheet" href="css/multirange-slider.css" media="screen" type="text/css" />
-
+  <link rel="stylesheet" href="multirange-slider.css" media="screen" type="text/css" />
 </head>
 
 <body>
 
+
   <h1>AngularJS Responsive Multi-range slider</h1>
-<div ng-app="multirangeSlider">
-  <div ng-controller="Ctrl" class="main">
+  <div ng-app="at.multirange-slider.example">
+    <div ng-controller="Ctrl" class="main">
 
-    <h2>Here's one with a simple array of numbers.</h2>
-    <p>
-    model: {{otherProbs}}
-    </p>
-    <slider model="otherProbs" ></slider>
+      <h2>Here's one with a simple array of numbers.</h2>
+      <p>
+        model: {{otherProbs}}
+      </p>
+      <slider model="otherProbs"></slider>
 
-    <h2>Here's one with an array of objects and a setp size.</h2>
-    <p>
-    model: {{probs}}<br>
-    property: "p"<br>
-    step: .05
-    </p>
-    <slider model="probs" property="p" step=".05"></slider>
+      <h2>Here's one with an array of objects and a setp size.</h2>
+      <p>
+        model: {{probs}}
+        <br>property: "p"
+        <br>step: .05
+      </p>
+      <slider model="probs" property="p" step=".05"></slider>
+
+    </div>
 
   </div>
-
-</div>
 
   <script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.12/angular.js'></script>
 
   <script src="multirange-slider.js"></script>
+
+  <script type="text/javascript">
+    angular.module("at.multirange-slider.example", ['at.multirange-slider'])
+    .controller("Ctrl", function($scope) {
+      $scope.probs = [{
+        p: 0.1
+      }, {
+        p: 0.5
+      }, {
+        p: 0.4
+      }];
+      $scope.otherProbs = [3, 3, 4];
+    });
+  </script>
 
 </body>
 
