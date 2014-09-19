@@ -25,8 +25,8 @@ gulp.task "coffee", [], ->
 #
 # Build task
 #
-gulp.task "build", ["clean", "coffee"], ->
-  
+gulp.task "build", ["clean"], ->
+  gulp.start('coffee')
   gulp.src([SRC_DIR + "/**/*.css", SRC_DIR + "/**/*.html"])
   .pipe gulp.dest(BUILD_DIR)
 
