@@ -6,6 +6,16 @@ I needed a slider that could be used to choose choose a list of probabilities th
 
 Usage
 -------
+###Get it:
+
+`bower install angular-multirange-slider`
+
+###Include it in your html:
+```html
+<script src="[YOUR BOWER COMPONENTS]/angular-multirange-slider/dist/multirange-slider.js"></script>
+```
+
+###Use it:
 `<slider model="arrayOfValues"></slider>`
 
 `arrayOfValues` is an array of numbers: the range values, in order from left to right.
@@ -21,13 +31,14 @@ Either of these can also take a `step` attribute, which locks the values into mu
 
 For styling: the markup generated is a containing `div` (`.slider-control`), a `div` for the actual slider bar (`.slider`, the js sets `position: relative`), and an absolutely-positioned `div` for each handle (`.slider-handle`).  The handles are children of the slider div, and their positioning is a percentage of the slider's width, so the whole thing *should* stretch/shrink to fit its containing element.  For example:
 
-    <div class="slider-control ng-isolate-scope" model="otherProbs">
-      <div class="slider" style="position: relative;">
-        <div class="slider-handle" style="position: absolute; left: 30%; top: -8px;"></div>
-        <div class="slider-handle" style="position: absolute; left: 60%; top: -8px;"></div>
-      </div>
-    </div>
-
+```html
+<div class="slider-control ng-isolate-scope" model="otherProbs">
+  <div class="slider" style="position: relative;">
+    <div class="slider-handle" style="position: absolute; left: 30%; top: -8px;"></div>
+    <div class="slider-handle" style="position: absolute; left: 60%; top: -8px;"></div>
+  </div>
+</div>
+```
 
 Todo
 ------
