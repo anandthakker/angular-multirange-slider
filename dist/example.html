@@ -19,8 +19,10 @@
         model: {{otherProbs}}
       </p>
       <input type='text' ng-model='val.p' ng-repeat='(key, val) in otherProbs'>
-      <slider model="val.p for (key, val) in otherProbs">
-        <div class="slider-handle">&larr;&rarr;</div>
+      <slider>
+        <slider-range model="val.p" ng-repeat="(key,val) in otherProbs">
+          <div class="slider-handle">&larr;&rarr;</div>
+        </slider-range>
       </slider>
 
 <!--       <h2>Here's one with an array of objects and a setp size.</h2>

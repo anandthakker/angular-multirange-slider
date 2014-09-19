@@ -10,14 +10,11 @@
 
 .at-multirange-slider .slider-range {
   display: inline-block;
-  position: relative;
   background: blue;
   height: 2px;
 }
 
 .at-multirange-slider .slider-handle {
-  position: absolute;
-  right: 0;
   height: 1em;
   border: 1px solid #133;
   border-radius: 2px;

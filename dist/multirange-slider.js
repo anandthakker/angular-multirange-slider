@@ -5,26 +5,9 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
     restrict: "E",
     replace: true,
     transclude: true,
-    scope: true,
-    template: "<div class=\"at-multirange-slider\">\n  <div class=\"slider\">\n    <slider-range ng-repeat=\"REPLACEME\">\n      <div ng-transclude></div>\n    </slider-range>\n\n  </div>\n</div>",
-    compile: function(element, attrs, transclude) {
-      var collectionExp, match, repeaterExp, valueFn, _ref;
-      match = (_ref = attrs.model) != null ? _ref.match(/^\s*([\s\S]+?)\s+for\s+((?:([\$\w][\$\w]*)|(?:\(\s*([\$\w][\$\w]*)\s*,\s*([\$\w][\$\w]*)\s*\)))\s+in\s+([\s\S]+))$/) : void 0;
-      repeaterExp = match[2];
-      valueFn = $parse(match[1]);
-      collectionExp = match[6];
-      element.children().children().attr('ng-repeat', repeaterExp);
-      return {
-        pre: function(scope, element, attrs, ctrl, transclude) {
-          return ctrl.valueFn = valueFn;
-        },
-        post: function(scope, element, attrs, ctrl) {
-          element.children().css('position', 'relative');
-          return scope.$watch(collectionExp, (function() {
-            return ctrl.updateRangeWidths();
-          }), true);
-        }
-      };
+    template: "<div class=\"at-multirange-slider\">\n  <div class=\"slider\" ng-transclude>\n  </div>\n</div>",
+    link: function(scope, element, attrs, ctrl) {
+      return element.children().css('position', 'relative');
     },
     controller: function($scope, $element, $attrs) {
       var get, sliderController;
@@ -58,7 +41,7 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
       };
     }
   };
-}).directive("sliderRange", function() {
+}).directive("sliderRange", function($parse) {
   return {
     template: "<div class=\"slider-range\" ng-transclude>\n</div>",
     require: ['^slider', 'sliderRange'],
@@ -71,20 +54,24 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
     compile: function() {
       return {
         pre: function(scope, element, attrs, _arg) {
-          var range, slider;
+          var range, slider, valueFn;
           slider = _arg[0], range = _arg[1];
+          valueFn = $parse(attrs.model);
           slider.ranges.push(range);
+          scope.$watch(attrs.model, (function() {
+            return slider.updateRangeWidths();
+          }));
           return angular.extend(range, {
             value: function(_) {
               var s;
               if (_ == null) {
-                return parseFloat('' + slider.valueFn(scope, {}), 10);
+                return parseFloat('' + valueFn(scope, {}), 10);
               }
               s = slider.step();
               if (s > 0) {
                 _ = Math.round(_ / s) * s;
               }
-              return slider.valueFn.assign(scope, _);
+              return valueFn.assign(scope, _);
             },
             update: function(runningTotal, total) {
               var rangeWidth, x;
@@ -105,8 +92,15 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
     restrict: 'AC',
     require: ['^slider', '^sliderRange'],
     link: function(scope, element, attrs, _arg, transclude) {
-      var nextRange, range, slider, startPleft, startPright, startX;
+      var nextRange, range, slider, startPleft, startPright, startX, updateWidth;
       slider = _arg[0], range = _arg[1];
+      updateWidth = function() {
+        return element.css({
+          float: 'right',
+          marginRight: -element.prop('clientWidth') / 2 + 'px'
+        });
+      };
+      updateWidth();
       nextRange = function() {
         return slider.ranges[slider.ranges.indexOf(range) + 1];
       };
