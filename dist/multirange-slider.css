@@ -18,8 +18,12 @@
   border: 1px solid black;
   border-radius: 2px;
   background: #fff;
-  cursor: pointer;  
+  cursor: pointer;
 }
 .slider-handle:hover {
   background: #ddd;
+}
+
+.slider-handle:last-child {
+  display: none;
 }

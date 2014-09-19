@@ -1,123 +1,129 @@
 angular.module("at.multirange-slider", []);
 
-angular.module("at.multirange-slider").directive("slider", function($document, $timeout) {
+angular.module("at.multirange-slider").directive("slider", function($parse, $compile) {
   return {
     restrict: "E",
-    scope: {
-      model: "=",
-      property: "@",
-      step: "@"
-    },
     replace: true,
-    template: "<div class=\"slider-control\">\n<div class=\"slider\">\n</div>\n</div>",
-    link: function(scope, element, attrs) {
-      var getP, handles, onModelChange, pTotal, renderHandles, setP, step, updatePositions;
-      element = element.children();
-      element.css('position', 'relative');
-      handles = [];
-      pTotal = 0;
-      step = function() {
-        if ((scope.step != null)) {
-          return parseFloat(scope.step);
-        } else {
+    scope: true,
+    template: "<div class=\"slider-control\">\n</div>",
+    compile: function(element, attrs) {
+      var collectionExp, match, repeaterExp, valueFn, _ref;
+      match = (_ref = attrs.model) != null ? _ref.match(/^\s*([\s\S]+?)\s+for\s+((?:([\$\w][\$\w]*)|(?:\(\s*([\$\w][\$\w]*)\s*,\s*([\$\w][\$\w]*)\s*\)))\s+in\s+([\s\S]+))$/) : void 0;
+      repeaterExp = match[2];
+      collectionExp = match[6];
+      valueFn = $parse(match[1]);
+      console.log(repeaterExp);
+      return {
+        pre: function(scope, element, attrs, ctrl) {
+          var compiled;
+          ctrl.valueFn = valueFn;
+          compiled = $compile("<div class=\"slider\">\n  <slider-handle ng-repeat=\"" + repeaterExp + "\"></slider-handle>\n</div>")(scope);
+          return element.append(compiled);
+        },
+        post: function(scope, element, attrs, ctrl) {
+          element.children().css('position', 'relative');
+          return scope.$watch(collectionExp, (function() {
+            return ctrl.updatePositions();
+          }), true);
+        }
+      };
+    },
+    controller: function($scope, $element, $attrs) {
+      var get, sliderController;
+      return sliderController = {
+        handles: [],
+        pTotal: function() {
+          return this.handles.reduce((function(sum, handle) {
+            return sum + handle.proportion();
+          }), 0);
+        },
+        step: ($attrs.step != null) ? (get = $parse($attrs.step), function() {
+          return parseFloat(get());
+        }) : function() {
           return 0;
+        },
+        updatePositions: function() {
+          var handle, pRunningTotal, _i, _len, _ref, _results;
+          pRunningTotal = 0;
+          _ref = this.handles;
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            handle = _ref[_i];
+            pRunningTotal += handle.proportion();
+            _results.push(handle.update(pRunningTotal, this.pTotal()));
+          }
+          return _results;
         }
       };
-      getP = function(i) {
-        if (scope.property != null) {
-          return scope.model[i][scope.property];
-        } else {
-          return scope.model[i];
-        }
-      };
-      setP = function(i, p) {
-        var s;
-        s = step();
-        if (s > 0) {
-          p = Math.round(p / s) * s;
-        }
-        if (scope.property != null) {
-          return scope.model[i][scope.property] = p;
-        } else {
-          return scope.model[i] = p;
-        }
-      };
-      updatePositions = function() {
-        var handle, i, p, pRunningTotal, x, _i, _len, _results;
-        pTotal = scope.model.reduce(function(sum, item, i) {
-          return sum + getP(i);
-        }, 0);
-        pRunningTotal = 0;
-        _results = [];
-        for (i = _i = 0, _len = handles.length; _i < _len; i = ++_i) {
-          handle = handles[i];
-          p = getP(i);
-          pRunningTotal += p;
-          x = pRunningTotal / pTotal * 100;
-          _results.push(handle.css({
+    }
+  };
+}).directive("sliderHandle", function($document) {
+  return {
+    template: "<div class=\"slider-handle\"></div>",
+    require: '^slider',
+    restrict: 'E',
+    replace: true,
+    link: function(scope, element, attrs, ctrl) {
+      var handle, nextHandle, startPleft, startPright, startX;
+      ctrl.handles.push(handle = {
+        proportion: function(_) {
+          var s;
+          if (_ == null) {
+            return parseFloat('' + ctrl.valueFn(scope, {}), 10);
+          }
+          s = ctrl.step();
+          if (s > 0) {
+            _ = Math.round(_ / s) * s;
+          }
+          return ctrl.valueFn.assign(scope, _);
+        },
+        update: function(runningTotal, total) {
+          var p, x;
+          p = this.proportion();
+          x = runningTotal / total * 100;
+          element.css({
             left: x + "%",
-            top: "-" + handle.prop("clientHeight") / 2 + "px"
-          }));
+            top: "-" + element.prop("clientHeight") / 2 + "px"
+          });
+          return this.proportion();
         }
-        return _results;
+      });
+      nextHandle = function() {
+        return ctrl.handles[ctrl.handles.indexOf(handle) + 1];
       };
-      renderHandles = function(model) {
-        var i, mv, _i, _len, _results;
-        _results = [];
-        for (i = _i = 0, _len = model.length; _i < _len; i = ++_i) {
-          mv = model[i];
-          _results.push((function(mv, i) {
-            var handle, startPleft, startPright, startX;
-            if (i === model.length - 1) {
+      startX = 0;
+      startPleft = startPright = 0;
+      element.css("position", "absolute");
+      return element.on("mousedown", function(event) {
+        var mousemove, mouseup, _ref;
+        if (nextHandle() == null) {
+          return;
+        }
+        mousemove = function(event) {
+          return scope.$apply(function() {
+            var dp, _ref;
+            dp = (event.screenX - startX) / element.parent().prop("clientWidth") * ctrl.pTotal();
+            if (dp < -startPleft || dp > startPright) {
               return;
             }
-            handle = angular.element('<div class="slider-handle"></div>');
-            handle.css("position", "absolute");
-            handles.push(handle);
-            element.append(handle);
-            startX = 0;
-            startPleft = startPright = 0;
-            return handle.on("mousedown", function(event) {
-              var mousemove, mouseup;
-              mousemove = (function(_this) {
-                return function(event) {
-                  return scope.$apply(function() {
-                    var dp;
-                    dp = (event.screenX - startX) / element.prop("clientWidth") * pTotal;
-                    if (dp < -startPleft || dp > startPright) {
-                      return;
-                    }
-                    setP(i, startPleft + dp);
-                    setP(i + 1, startPright - dp);
-                    return updatePositions();
-                  });
-                };
-              })(this);
-              mouseup = function() {
-                $document.unbind("mousemove", mousemove);
-                return $document.unbind("mouseup", mouseup);
-              };
-              event.preventDefault();
-              startX = event.screenX;
-              startPleft = getP(i);
-              startPright = getP(i + 1);
-              $document.on("mousemove", mousemove);
-              return $document.on("mouseup", mouseup);
-            });
-          })(mv, i));
-        }
-        return _results;
-      };
-      onModelChange = function(changedModel, model) {
-        if (changedModel.length !== model.length) {
-          handles = [];
-          element.children().remove();
-          renderHandles(changedModel);
-        }
-        return updatePositions();
-      };
-      renderHandles(scope.model);
-      return scope.$watch("model", onModelChange, true);
+            handle.proportion(startPleft + dp);
+            if ((_ref = nextHandle()) != null) {
+              _ref.proportion(startPright - dp);
+            }
+            return ctrl.updatePositions();
+          });
+        };
+        mouseup = function() {
+          $document.unbind("mousemove", mousemove);
+          return $document.unbind("mouseup", mouseup);
+        };
+        event.preventDefault();
+        startX = event.screenX;
+        startPleft = handle.proportion();
+        startPright = (_ref = nextHandle()) != null ? _ref.proportion() : void 0;
+        $document.on("mousemove", mousemove);
+        return $document.on("mouseup", mouseup);
+      });
     }
   };
 });

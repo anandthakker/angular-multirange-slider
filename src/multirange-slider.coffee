@@ -1,100 +1,107 @@
 angular.module("at.multirange-slider", [])
 
-
 angular.module("at.multirange-slider")
-.directive("slider", ($document, $timeout)->
+.directive "slider", ($parse, $compile)->
   restrict: "E"
-  scope:
-    model: "="
-    property: "@"
-    step: "@"
   replace: true
+  scope: true
   template: """
 <div class="slider-control">
-<div class="slider">
-</div>
 </div>
   """
-  link: (scope, element, attrs)->
+  compile: (element, attrs)->
+    # coffeelint: disable=max_line_length
+    # Following based on https://github.com/angular/angular.js/blob/master/src/ng/directive/select.js#L146
+    #                            00011111111110000000002222333333333333333000000000444444444444444000000055555555555555500000000000000066666666662
+    match = attrs.model?.match /^\s*([\s\S]+?)\s+for\s+((?:([\$\w][\$\w]*)|(?:\(\s*([\$\w][\$\w]*)\s*,\s*([\$\w][\$\w]*)\s*\)))\s+in\s+([\s\S]+))$/
+    # coffeelint: enable=max_line_length
 
-    # It's the inner div we're really working with.
-    element = element.children()
-    element.css('position', 'relative')
+    repeaterExp = match[2]
+    collectionExp = match[6]
+    valueFn = $parse(match[1])
 
-    handles = []
-    pTotal = 0
+    console.log repeaterExp
 
-    step = ()->
-      if(scope.step?)
-        parseFloat(scope.step)
-      else
-        0
-
-    getP = (i) -> if scope.property? then scope.model[i][scope.property] else scope.model[i]
-    setP = (i, p) ->
-      s = step()
-      if s > 0
-        p = Math.round(p/s) * s
-      if scope.property?
-        scope.model[i][scope.property] = p
-      else
-        scope.model[i] = p
-
-
-    updatePositions = ()->
-      pTotal = scope.model.reduce (sum, item, i)->
-        sum+getP(i)
-      , 0
-
+    pre: (scope, element, attrs, ctrl)->
+      ctrl.valueFn = valueFn
+      
+      compiled = $compile("""
+      <div class="slider">
+        <slider-handle ng-repeat="#{repeaterExp}"></slider-handle>
+      </div>
+      """)(scope)
+      element.append(compiled)
+      
+    post: (scope, element, attrs, ctrl)->
+      element.children().css('position', 'relative')
+      scope.$watch collectionExp, (->ctrl.updatePositions()), true
+    
+  controller: ($scope, $element, $attrs) -> sliderController =
+    handles: []
+    pTotal: ->@handles.reduce ((sum, handle)->sum+handle.proportion()), 0
+    step: if($attrs.step?)
+      get = $parse($attrs.step)
+      -> parseFloat(get())
+    else
+      -> 0
+    updatePositions: ->
       pRunningTotal = 0
-      for handle,i in handles
-        p = getP(i)
-        pRunningTotal += p
-        x = pRunningTotal/pTotal * 100 #element.prop("clientWidth")
-        handle.css
-          left: x + "%"
-          top: "-" + handle.prop("clientHeight")/2 + "px"
+      for handle in @handles
+        pRunningTotal += handle.proportion()
+        handle.update(pRunningTotal, @pTotal())
 
-    renderHandles = (model) ->
-      for mv,i in model
-        do (mv, i)->
-          return if i == model.length-1
-          handle = angular.element('<div class="slider-handle"></div>')
-          handle.css("position", "absolute")
-          handles.push(handle)
-          element.append(handle)
 
-          startX = 0
-          startPleft = startPright = 0
-          handle.on "mousedown", (event) ->
-            mousemove = (event) => scope.$apply ()->
-              dp = (event.screenX - startX) / element.prop("clientWidth") * pTotal
-              return if dp < -startPleft or dp > startPright
-              setP(i, startPleft+dp)
-              setP(i+1, startPright-dp)
-              updatePositions()
 
-            mouseup = ->
-              $document.unbind "mousemove", mousemove
-              $document.unbind "mouseup", mouseup
-
-            # Prevent default dragging of selected content
-            event.preventDefault()
-            startX = event.screenX
-            startPleft = getP(i)
-            startPright = getP(i+1)
-            $document.on "mousemove", mousemove
-            $document.on "mouseup", mouseup
-
-    onModelChange = (changedModel, model) ->
-      if changedModel.length != model.length
-        handles = []
-        element.children().remove()
-        renderHandles(changedModel)
+.directive "sliderHandle", ($document)->
+  template: """
+<div class="slider-handle"></div>
+  """
+  require: '^slider'
+  restrict: 'E'
+  replace: true
+  
+  link: (scope, element, attrs, ctrl)->
+    ctrl.handles.push(handle=
+      proportion: (_) ->
+        if not _? then return parseFloat(''+ctrl.valueFn(scope, {}), 10)
+        s = ctrl.step()
+        if s > 0
+          _ = Math.round(_/s) * s
+        ctrl.valueFn.assign(scope, _)
         
-      updatePositions()
+      update: (runningTotal, total)->
+        p = @proportion()
+        x = runningTotal/total * 100 #element.prop("clientWidth")
+        element.css
+          left: x + "%"
+          top: "-" + element.prop("clientHeight")/2 + "px"
+        @proportion()
+    )
+    
+    nextHandle = -> ctrl.handles[ctrl.handles.indexOf(handle) + 1]
 
+    startX = 0
+    startPleft = startPright = 0
 
-    renderHandles scope.model
-    scope.$watch "model", onModelChange, true
-)
+    element.css("position", "absolute")
+    element.on "mousedown", (event) ->
+      return unless nextHandle()?
+      mousemove = (event) -> scope.$apply ()->
+        dp = (event.screenX - startX) /
+          element.parent().prop("clientWidth") * ctrl.pTotal()
+        return if dp < -startPleft or dp > startPright
+        handle.proportion(startPleft+dp)
+        nextHandle()?.proportion(startPright-dp)
+        ctrl.updatePositions()
+
+      mouseup = ->
+        $document.unbind "mousemove", mousemove
+        $document.unbind "mouseup", mouseup
+
+      # Prevent default dragging of selected content
+      event.preventDefault()
+      startX = event.screenX
+      startPleft = handle.proportion()
+      startPright = nextHandle()?.proportion()
+      $document.on "mousemove", mousemove
+      $document.on "mouseup", mouseup
