@@ -6,15 +6,22 @@
 
 .at-multirange-slider .slider {
   height: 2px;
+  background: gray;
+
 }
 
 .at-multirange-slider .slider-range {
+  box-sizing: border-box;
   display: inline-block;
-  background: blue;
-  height: 2px;
+  vertical-align: top;
+  height: 4px;
+  background: rgba(0,128,255,.5);
+  border-left: 5px solid blue;
 }
 
 .at-multirange-slider .slider-handle {
+  z-index: 100;
+  margin-top: -.5em;
   height: 1em;
   border: 1px solid #133;
   border-radius: 2px;

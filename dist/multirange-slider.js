@@ -13,6 +13,7 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
       var get, sliderController;
       return sliderController = {
         ranges: [],
+        handles: [],
         pTotal: function() {
           return this.ranges.reduce((function(sum, range) {
             return sum + range.value();
@@ -23,20 +24,29 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
         }) : function() {
           return 0;
         },
+        _width: 0,
         updateRangeWidths: function() {
-          var pRunningTotal, range, _i, _len, _ref, _results;
+          var handle, pRunningTotal, range, _i, _j, _len, _len1, _ref, _ref1, _results;
+          this._width = $element.prop('clientWidth');
           pRunningTotal = 0;
           _ref = this.ranges;
-          _results = [];
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             range = _ref[_i];
             pRunningTotal += range.value();
-            _results.push(range.update(pRunningTotal, this.pTotal()));
+            range.update(pRunningTotal, this.pTotal());
+          }
+          _ref1 = this.handles;
+          _results = [];
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            handle = _ref1[_j];
+            _results.push(handle.updateWidth());
           }
           return _results;
         },
         elementWidth: function() {
-          return $element.prop('clientWidth');
+          return this._width - this.handles.reduce(function(sum, handle) {
+            return sum + handle.width();
+          }, 0);
         }
       };
     }
@@ -62,6 +72,7 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
             return slider.updateRangeWidths();
           }));
           return angular.extend(range, {
+            widthAdjustment: '0px',
             value: function(_) {
               var s;
               if (_ == null) {
@@ -76,10 +87,14 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
             update: function(runningTotal, total) {
               var rangeWidth, x;
               x = runningTotal / total * 100;
-              rangeWidth = this.value() / total * 99;
+              rangeWidth = this.value() / total * 99.9;
               return element.css({
-                width: rangeWidth + "%"
+                width: rangeWidth * slider.elementWidth() / 100 > 1 ? "calc(" + rangeWidth + "% - " + this.widthAdjustment + ")" : '0',
+                'margin-left': this.widthAdjustment
               });
+            },
+            adjustWidth: function(margin) {
+              return this.widthAdjustment = margin;
             }
           });
         }
@@ -92,18 +107,26 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
     restrict: 'AC',
     require: ['^slider', '^sliderRange'],
     link: function(scope, element, attrs, _arg, transclude) {
-      var nextRange, range, slider, startPleft, startPright, startX, updateWidth;
+      var handle, nextRange, range, slider, startPleft, startPright, startX;
       slider = _arg[0], range = _arg[1];
-      updateWidth = function() {
-        return element.css({
-          float: 'right',
-          marginRight: -element.prop('clientWidth') / 2 + 'px'
-        });
-      };
-      updateWidth();
       nextRange = function() {
         return slider.ranges[slider.ranges.indexOf(range) + 1];
       };
+      slider.handles.push(handle = {
+        _width: 0,
+        width: function() {
+          return this._width;
+        },
+        updateWidth: function() {
+          var _ref;
+          this._width = element.prop('clientWidth');
+          element.css({
+            float: 'right',
+            marginRight: -handle.width() / 2 + 'px'
+          });
+          return (_ref = nextRange()) != null ? _ref.adjustWidth(handle.width() / 2 + 'px') : void 0;
+        }
+      });
       if (scope.$last) {
         element.remove();
       }
@@ -118,7 +141,6 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
           return scope.$apply(function() {
             var dp, _ref;
             dp = (event.screenX - startX) / slider.elementWidth() * slider.pTotal();
-            console.log(dp);
             if (dp < -startPleft || dp > startPright) {
               return;
             }

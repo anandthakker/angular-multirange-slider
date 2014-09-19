@@ -16,20 +16,28 @@ angular.module("at.multirange-slider")
     
   controller: ($scope, $element, $attrs) -> sliderController =
     ranges: []
+    handles: []
     pTotal: ->@ranges.reduce ((sum, range)->sum+range.value()), 0
     step: if($attrs.step?)
       get = $parse($attrs.step)
       -> parseFloat(get())
     else
       -> 0
+    
+    _width: 0
     updateRangeWidths: ->
+      @_width = $element.prop('clientWidth')
+      
       pRunningTotal = 0
       for range in @ranges
         pRunningTotal += range.value()
         range.update(pRunningTotal, @pTotal())
-        
+      handle.updateWidth() for handle in @handles
+    
     elementWidth: ->
-      $element.prop('clientWidth')
+      @_width - @handles.reduce (sum, handle) ->
+        sum+handle.width()
+      , 0
 
 
 .directive "sliderRange", ($parse)->
@@ -50,6 +58,7 @@ angular.module("at.multirange-slider")
       slider.ranges.push(range)
       scope.$watch attrs.model, (->slider.updateRangeWidths())
       angular.extend range,
+        widthAdjustment: '0px'
         value: (_) ->
           if not _? then return parseFloat(''+valueFn(scope, {}), 10)
           s = slider.step()
@@ -59,23 +68,35 @@ angular.module("at.multirange-slider")
           
         update: (runningTotal, total)->
           x = runningTotal/total * 100
-          rangeWidth = @value()/total*99
+          rangeWidth = @value()/total*99.9
           element.css
-            width: rangeWidth + "%"
+            width: if rangeWidth*slider.elementWidth()/100 > 1
+              "calc(#{rangeWidth}% - #{@widthAdjustment})"
+            else
+              '0'
+            'margin-left': @widthAdjustment
+            
+        adjustWidth: (margin)->
+          @widthAdjustment = margin
 
 .directive 'sliderHandle', ($document)->
   replace: false
   restrict: 'AC'
   require: ['^slider', '^sliderRange']
   link: (scope, element, attrs, [slider, range], transclude)->
-    updateWidth = ->
-      element.css(
-        float: 'right'
-        marginRight: - element.prop('clientWidth')/2 + 'px'
-      )
-    updateWidth()
-    
+        
     nextRange = -> slider.ranges[slider.ranges.indexOf(range) + 1]
+    
+    slider.handles.push handle=
+      _width: 0
+      width: -> @_width
+      updateWidth: ->
+        @_width = element.prop('clientWidth')
+        element.css(
+          float: 'right'
+          marginRight: - handle.width()/2 + 'px'
+        )
+        nextRange()?.adjustWidth(handle.width()/2 + 'px')
     
     if scope.$last
       element.remove()
@@ -87,7 +108,6 @@ angular.module("at.multirange-slider")
       return unless nextRange()?
       mousemove = (event) -> scope.$apply ()->
         dp = (event.screenX - startX) / slider.elementWidth() * slider.pTotal()
-        console.log dp
         return if dp < -startPleft or dp > startPright
         range.value(startPleft+dp)
         nextRange()?.value(startPright-dp)
