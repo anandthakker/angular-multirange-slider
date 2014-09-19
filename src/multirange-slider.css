@@ -6,17 +6,15 @@
 
 .at-multirange-slider .slider {
   height: 2px;
-  background: gray;
-
 }
 
 .at-multirange-slider .slider-range {
+  
   box-sizing: border-box;
   display: inline-block;
+  
   vertical-align: top;
-  height: 4px;
-  background: rgba(0,128,255,.5);
-  border-left: 5px solid blue;
+  height: 2px;
 }
 
 .at-multirange-slider .slider-handle {
@@ -28,6 +26,13 @@
   background: #fff;
   cursor: pointer;
 }
+
 .at-multirange-slider .slider-handle:hover {
   background: #ddd;
+}
+
+.at-multirange-slider .slider-label {
+  text-align: center;
+  padding-top: .25em;
+  font-size: .75em;
 }
