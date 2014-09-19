@@ -4,12 +4,12 @@
   "repository": "https://github.com/anandthakker/angular-multirange-slider",
   "version": "0.0.1",
   "dependencies": {
-    "coffee-script": "~1.7.1"
   },
   "devDependencies": {
-    "gulp": "~3.7.0",
-    "gulp-clean": "~0.3.0",
-    "gulp-coffee": "~2.0.0",
-    "gulp-util": "~2.2.16"
+    "coffee-script": "^1.7.1",
+    "gulp": "^3.8",
+    "gulp-clean": "^0.3.0",
+    "gulp-coffee": "^2.0.0",
+    "gulp-util": "^2.2.16"
   }
 }

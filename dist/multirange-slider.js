@@ -11,7 +11,7 @@ angular.module("multirangeSlider").directive("slider", function($document, $time
     replace: true,
     template: "<div class=\"slider-control\">\n<div class=\"slider\">\n</div>\n</div>",
     link: function(scope, element, attrs) {
-      var getP, handles, i, mv, pTotal, setP, step, updatePositions, _fn, _i, _len, _ref;
+      var getP, handles, onModelChange, pTotal, renderHandles, setP, step, updatePositions;
       element = element.children();
       element.css('position', 'relative');
       handles = [];
@@ -61,51 +61,63 @@ angular.module("multirangeSlider").directive("slider", function($document, $time
         }
         return _results;
       };
-      _ref = scope.model;
-      _fn = function(mv, i) {
-        var handle, startPleft, startPright, startX;
-        if (i === scope.model.length - 1) {
-          return;
+      renderHandles = function(model) {
+        var i, mv, _i, _len, _results;
+        _results = [];
+        for (i = _i = 0, _len = model.length; _i < _len; i = ++_i) {
+          mv = model[i];
+          _results.push((function(mv, i) {
+            var handle, startPleft, startPright, startX;
+            if (i === model.length - 1) {
+              return;
+            }
+            handle = angular.element('<div class="slider-handle"></div>');
+            handle.css("position", "absolute");
+            handles.push(handle);
+            element.append(handle);
+            startX = 0;
+            startPleft = startPright = 0;
+            return handle.on("mousedown", function(event) {
+              var mousemove, mouseup;
+              mousemove = (function(_this) {
+                return function(event) {
+                  return scope.$apply(function() {
+                    var dp;
+                    dp = (event.screenX - startX) / element.prop("clientWidth") * pTotal;
+                    if (dp < -startPleft || dp > startPright) {
+                      return;
+                    }
+                    setP(i, startPleft + dp);
+                    setP(i + 1, startPright - dp);
+                    return updatePositions();
+                  });
+                };
+              })(this);
+              mouseup = function() {
+                $document.unbind("mousemove", mousemove);
+                return $document.unbind("mouseup", mouseup);
+              };
+              event.preventDefault();
+              startX = event.screenX;
+              startPleft = getP(i);
+              startPright = getP(i + 1);
+              $document.on("mousemove", mousemove);
+              return $document.on("mouseup", mouseup);
+            });
+          })(mv, i));
         }
-        handle = angular.element('<div class="slider-handle"></div>');
-        handle.css("position", "absolute");
-        handles.push(handle);
-        element.append(handle);
-        startX = 0;
-        startPleft = startPright = 0;
-        return handle.on("mousedown", function(event) {
-          var mousemove, mouseup;
-          mousemove = (function(_this) {
-            return function(event) {
-              return scope.$apply(function() {
-                var dp;
-                dp = (event.screenX - startX) / element.prop("clientWidth") * pTotal;
-                if (dp < -startPleft || dp > startPright) {
-                  return;
-                }
-                setP(i, startPleft + dp);
-                setP(i + 1, startPright - dp);
-                return updatePositions();
-              });
-            };
-          })(this);
-          mouseup = function() {
-            $document.unbind("mousemove", mousemove);
-            return $document.unbind("mouseup", mouseup);
-          };
-          event.preventDefault();
-          startX = event.screenX;
-          startPleft = getP(i);
-          startPright = getP(i + 1);
-          $document.on("mousemove", mousemove);
-          return $document.on("mouseup", mouseup);
-        });
+        return _results;
       };
-      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        mv = _ref[i];
-        _fn(mv, i);
-      }
-      return scope.$watch("model", updatePositions, true);
+      onModelChange = function(changedModel, model) {
+        if (changedModel.length !== model.length) {
+          handles = [];
+          element.children().remove();
+          renderHandles(changedModel);
+        }
+        return updatePositions();
+      };
+      renderHandles(scope.model);
+      return scope.$watch("model", onModelChange, true);
     }
   };
 });
