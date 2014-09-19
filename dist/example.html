@@ -12,24 +12,26 @@
 
   <h1>AngularJS Responsive Multi-range slider</h1>
   <div ng-app="at.multirange-slider.example">
-    <div ng-controller="Ctrl" class="main">
+    <div ng-controller="Ctrl" style="width: 50%;">
 
       <h2>Here's one with a map.</h2>
       <p>
         model: {{otherProbs}}
       </p>
       <input type='text' ng-model='val.p' ng-repeat='(key, val) in otherProbs'>
-      <slider model="val.p for (key, val) in otherProbs"></slider>
+      <slider model="val.p for (key, val) in otherProbs">
+        <div class="slider-handle">&larr;&rarr;</div>
+      </slider>
 
-      <h2>Here's one with an array of objects and a setp size.</h2>
-      <p>
-        model: {{probs}}
-        <br>property: "p"
-        <br>step: .05
-      </p>
-      <input type='text' ng-model='val.p' ng-repeat='val in probs'>
-      <slider model="val.p for val in probs" step=".05"></slider>
-
+<!--       <h2>Here's one with an array of objects and a setp size.</h2>
+<p>
+  model: {{probs}}
+  <br>property: "p"
+  <br>step: .05
+</p>
+<input type='text' ng-model='val.p' ng-repeat='val in probs'>
+<slider model="val.p for val in probs" step=".05"></slider>
+ -->
     </div>
 
   </div>

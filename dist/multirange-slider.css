@@ -1,29 +1,29 @@
-.main {
-  width: 50%;
-}
 
-.slider-control {
+.at-multirange-slider {
   height: 1em;
   padding-top: .5em;
 }
 
-.slider {
+.at-multirange-slider .slider {
   height: 2px;
-  border: 1px solid black;
 }
 
-.slider-handle {
+.at-multirange-slider .slider-range {
+  display: inline-block;
+  position: relative;
+  background: blue;
+  height: 2px;
+}
+
+.at-multirange-slider .slider-handle {
+  position: absolute;
+  right: 0;
   height: 1em;
-  width: 1em;
-  border: 1px solid black;
+  border: 1px solid #133;
   border-radius: 2px;
   background: #fff;
   cursor: pointer;
 }
-.slider-handle:hover {
+.at-multirange-slider .slider-handle:hover {
   background: #ddd;
-}
-
-.slider-handle:last-child {
-  display: none;
 }
