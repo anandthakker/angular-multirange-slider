@@ -13,32 +13,31 @@ angular.module("at.multirange-slider")
   """
   link: (scope, element, attrs, ctrl)->
     element.children().css('position', 'relative')
-    
-  controller: ($scope, $element, $attrs) -> sliderController =
-    ranges: []
-    handles: []
-    pTotal: ->@ranges.reduce ((sum, range)->sum+range.value()), 0
-    step: if($attrs.step?)
+
+  controller: ($scope, $element, $attrs) ->
+    @ranges = []
+    @handles = []
+    @pTotal = ->@ranges.reduce ((sum, range)->sum+range.value()), 0
+    @step = if($attrs.step?)
       get = $parse($attrs.step)
       -> parseFloat(get())
     else
       -> 0
-    
-    _width: 0
-    updateRangeWidths: ->
+
+    @_width = 0
+    @updateRangeWidths = ->
       @_width = $element.prop('clientWidth')
-      
+
       pRunningTotal = 0
       for range in @ranges
         pRunningTotal += range.value()
         range.update(pRunningTotal, @pTotal())
       handle.updateWidth() for handle in @handles
-    
-    elementWidth: ->
+
+    @elementWidth = ->
       @_width - @handles.reduce (sum, handle) ->
         sum+handle.width()
       , 0
-
 
 .directive "sliderRange", ($parse)->
   template: """
@@ -51,7 +50,7 @@ angular.module("at.multirange-slider")
   transclude: true
   controller: ($scope)->
     {} # filled in during pre-link.
-    
+
   compile: ->
     pre: (scope, element, attrs, [slider, range]) ->
       valueFn = $parse(attrs.model)
@@ -65,7 +64,7 @@ angular.module("at.multirange-slider")
           if s > 0
             _ = Math.round(_/s) * s
           valueFn.assign(scope, _)
-          
+
         update: (runningTotal, total)->
           x = runningTotal/total * 100
           rangeWidth = @value()/total*99.9
@@ -75,7 +74,7 @@ angular.module("at.multirange-slider")
             else
               '0'
             'margin-left': @widthAdjustment
-            
+
         adjustWidth: (margin)->
           @widthAdjustment = margin
 
@@ -84,9 +83,9 @@ angular.module("at.multirange-slider")
   restrict: 'AC'
   require: ['^slider', '^sliderRange']
   link: (scope, element, attrs, [slider, range], transclude)->
-        
+
     nextRange = -> slider.ranges[slider.ranges.indexOf(range) + 1]
-    
+
     slider.handles.push handle=
       _width: 0
       width: -> @_width
@@ -97,7 +96,7 @@ angular.module("at.multirange-slider")
           marginRight: - handle.width()/2 + 'px'
         )
         nextRange()?.adjustWidth(handle.width()/2 + 'px')
-    
+
     if scope.$last
       element.remove()
 
@@ -125,5 +124,5 @@ angular.module("at.multirange-slider")
       $document.on "mousemove", mousemove
       $document.on "mouseup", mouseup
 
-  
-  
+
+
