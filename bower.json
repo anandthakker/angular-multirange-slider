@@ -1,11 +1,14 @@
 {
   "name": "angular-multirange-slider",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "authors": [
     "Anand Thakker (http://github.com/anandthakker)"
   ],
   "description": "A multi-range slider directive for AngularJS",
-  "main": ["dist/multirange-slider.js", "dist/multirange-slider.css"],
+  "main": [
+    "dist/multirange-slider.js",
+    "dist/multirange-slider.css"
+  ],
   "keywords": [
     "AngularJS",
     "slider"
