@@ -97,9 +97,6 @@ angular.module("at.multirange-slider")
         )
         nextRange()?.adjustWidth(handle.width()/2 + 'px')
 
-    if scope.$last
-      element.remove()
-
     startX = 0
     startPleft = startPright = 0
 
