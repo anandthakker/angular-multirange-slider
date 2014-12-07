@@ -2,7 +2,7 @@
   "name": "angular-multirange-slider",
   "description": "A multi-range slider directive for AngularJS",
   "repository": "https://github.com/anandthakker/angular-multirange-slider",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "dependencies": {
   },
   "devDependencies": {
