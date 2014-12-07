@@ -25,14 +25,15 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
       };
       this._width = 0;
       this.updateRangeWidths = function() {
-        var handle, pRunningTotal, range, _i, _j, _len, _len1, _ref, _ref1, _results;
+        var handle, pRunningTotal, range, total, _i, _j, _len, _len1, _ref, _ref1, _results;
         this._width = $element.prop('clientWidth');
         pRunningTotal = 0;
+        total = this.pTotal();
         _ref = this.ranges;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           range = _ref[_i];
           pRunningTotal += range.value();
-          range.update(pRunningTotal, this.pTotal());
+          range.update(pRunningTotal, total);
         }
         _ref1 = this.handles;
         _results = [];
@@ -94,6 +95,14 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
             adjustWidth: function(margin) {
               return this.widthAdjustment = margin;
             }
+          });
+        },
+        post: function(scope, element, attrs, _arg) {
+          var range, slider;
+          slider = _arg[0], range = _arg[1];
+          return element.on('$destroy', function() {
+            slider.ranges.splice(slider.ranges.indexOf(range), 1);
+            return slider.updateRangeWidths();
           });
         }
       };

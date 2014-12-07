@@ -29,9 +29,10 @@ angular.module("at.multirange-slider")
       @_width = $element.prop('clientWidth')
 
       pRunningTotal = 0
+      total = @pTotal()
       for range in @ranges
         pRunningTotal += range.value()
-        range.update(pRunningTotal, @pTotal())
+        range.update(pRunningTotal, total)
       handle.updateWidth() for handle in @handles
 
     @elementWidth = ->
@@ -77,6 +78,12 @@ angular.module("at.multirange-slider")
 
         adjustWidth: (margin)->
           @widthAdjustment = margin
+    
+    post: (scope, element, attrs, [slider, range]) ->
+      element.on('$destroy', ->
+        slider.ranges.splice(slider.ranges.indexOf(range), 1)
+        slider.updateRangeWidths()
+      )
 
 .directive 'sliderHandle', ($document)->
   replace: false
@@ -120,6 +127,3 @@ angular.module("at.multirange-slider")
       startPright = nextRange()?.value()
       $document.on "mousemove", mousemove
       $document.on "mouseup", mouseup
-
-
-
