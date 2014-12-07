@@ -33,6 +33,8 @@
       </p>
 
       <h2>Here's one with an array of objects, a step size, and some playing cards.</h2>
+      <button ng-click="addItem(otherProbs)">Add Item</button>
+      <button ng-click="removeItem(otherProbs)">Remove Item</button>      
       <slider step=".05">
         <slider-range model="val.p" ng-repeat="val in probs">
           <div class="slider-handle" ng-bind-html="val.symbol"></div>
@@ -49,22 +51,31 @@
 
   </div>
 
-  <script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.12/angular.js'></script>
+  <script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.3.0/angular.js'></script>
 
   <script src="multirange-slider.js"></script>
 
   <script type="text/javascript">
     angular.module("at.multirange-slider.example", ['at.multirange-slider'])
       .controller("Ctrl", function($scope, $sce) {
+        $scope.addItem = function() {
+          $scope.probs.push({
+            p: Math.random(),
+            symbol: $sce.trustAsHtml($scope.probs.length + ' &spades;')
+          });
+        }
+        $scope.removeItem = function() {
+          $scope.probs.pop();
+        }
         $scope.probs = [{
           p: 0.1,
-          symbol: $sce.trustAsHtml('&hearts;')
+          symbol: $sce.trustAsHtml('3 &hearts;')
         }, {
           p: 0.5,
-          symbol: $sce.trustAsHtml('&spades;')
+          symbol: $sce.trustAsHtml('4 &spades;')
         }, {
           p: 0.4,
-          symbol: $sce.trustAsHtml('&diamonds;')
+          symbol: $sce.trustAsHtml('7 &clubs;')
         }];
         $scope.otherProbs = {
           key1: {

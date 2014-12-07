@@ -31,6 +31,10 @@
   background: #ddd;
 }
 
+.at-multirange-slider .slider-range:last-child .slider-handle{
+    display: none;
+}
+
 .at-multirange-slider .slider-label {
   text-align: center;
   padding-top: .25em;

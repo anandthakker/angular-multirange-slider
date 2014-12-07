@@ -10,44 +10,42 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
       return element.children().css('position', 'relative');
     },
     controller: function($scope, $element, $attrs) {
-      var get, sliderController;
-      return sliderController = {
-        ranges: [],
-        handles: [],
-        pTotal: function() {
-          return this.ranges.reduce((function(sum, range) {
-            return sum + range.value();
-          }), 0);
-        },
-        step: ($attrs.step != null) ? (get = $parse($attrs.step), function() {
-          return parseFloat(get());
-        }) : function() {
-          return 0;
-        },
-        _width: 0,
-        updateRangeWidths: function() {
-          var handle, pRunningTotal, range, _i, _j, _len, _len1, _ref, _ref1, _results;
-          this._width = $element.prop('clientWidth');
-          pRunningTotal = 0;
-          _ref = this.ranges;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            range = _ref[_i];
-            pRunningTotal += range.value();
-            range.update(pRunningTotal, this.pTotal());
-          }
-          _ref1 = this.handles;
-          _results = [];
-          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-            handle = _ref1[_j];
-            _results.push(handle.updateWidth());
-          }
-          return _results;
-        },
-        elementWidth: function() {
-          return this._width - this.handles.reduce(function(sum, handle) {
-            return sum + handle.width();
-          }, 0);
+      var get;
+      this.ranges = [];
+      this.handles = [];
+      this.pTotal = function() {
+        return this.ranges.reduce((function(sum, range) {
+          return sum + range.value();
+        }), 0);
+      };
+      this.step = ($attrs.step != null) ? (get = $parse($attrs.step), function() {
+        return parseFloat(get());
+      }) : function() {
+        return 0;
+      };
+      this._width = 0;
+      this.updateRangeWidths = function() {
+        var handle, pRunningTotal, range, _i, _j, _len, _len1, _ref, _ref1, _results;
+        this._width = $element.prop('clientWidth');
+        pRunningTotal = 0;
+        _ref = this.ranges;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          range = _ref[_i];
+          pRunningTotal += range.value();
+          range.update(pRunningTotal, this.pTotal());
         }
+        _ref1 = this.handles;
+        _results = [];
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          handle = _ref1[_j];
+          _results.push(handle.updateWidth());
+        }
+        return _results;
+      };
+      return this.elementWidth = function() {
+        return this._width - this.handles.reduce(function(sum, handle) {
+          return sum + handle.width();
+        }, 0);
       };
     }
   };
@@ -127,9 +125,6 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
           return (_ref = nextRange()) != null ? _ref.adjustWidth(handle.width() / 2 + 'px') : void 0;
         }
       });
-      if (scope.$last) {
-        element.remove();
-      }
       startX = 0;
       startPleft = startPright = 0;
       return element.on("mousedown", function(event) {
