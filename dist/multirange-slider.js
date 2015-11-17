@@ -1,70 +1,81 @@
-angular.module("at.multirange-slider", []);
+var sliderDirective, sliderHandleDirective, sliderRangeDirective;
 
-angular.module("at.multirange-slider").directive("slider", function($parse, $compile) {
+angular.module('at.multirange-slider', []);
+
+sliderDirective = function($parse, $compile) {
+  var sliderController;
+  sliderController = function($scope, $element, $attrs) {
+    var get;
+    this.ranges = [];
+    this.handles = [];
+    this.pTotal = function() {
+      return this.ranges.reduce((function(sum, range) {
+        return sum + range.value();
+      }), 0);
+    };
+    this.step = ($attrs.step != null) ? (get = $parse($attrs.step), function() {
+      return parseFloat(get());
+    }) : function() {
+      return 0;
+    };
+    this._width = 0;
+    this.updateRangeWidths = function() {
+      var handle, i, j, len, len1, pRunningTotal, range, ref, ref1, results, total;
+      this._width = $element.prop('clientWidth');
+      pRunningTotal = 0;
+      total = this.pTotal();
+      ref = this.ranges;
+      for (i = 0, len = ref.length; i < len; i++) {
+        range = ref[i];
+        pRunningTotal += range.value();
+        range.update(pRunningTotal, total);
+      }
+      ref1 = this.handles;
+      results = [];
+      for (j = 0, len1 = ref1.length; j < len1; j++) {
+        handle = ref1[j];
+        results.push(handle.updateWidth());
+      }
+      return results;
+    };
+    this.elementWidth = function() {
+      return this._width - this.handles.reduce(function(sum, handle) {
+        return sum + handle.width();
+      }, 0);
+    };
+    return this;
+  };
+  sliderController.$inject = ['$scope', '$element', '$attrs'];
   return {
-    restrict: "E",
+    restrict: 'E',
     replace: true,
     transclude: true,
     template: "<div class=\"at-multirange-slider\">\n  <div class=\"slider\" ng-transclude>\n  </div>\n</div>",
     link: function(scope, element, attrs, ctrl) {
       return element.children().css('position', 'relative');
     },
-    controller: function($scope, $element, $attrs) {
-      var get;
-      this.ranges = [];
-      this.handles = [];
-      this.pTotal = function() {
-        return this.ranges.reduce((function(sum, range) {
-          return sum + range.value();
-        }), 0);
-      };
-      this.step = ($attrs.step != null) ? (get = $parse($attrs.step), function() {
-        return parseFloat(get());
-      }) : function() {
-        return 0;
-      };
-      this._width = 0;
-      this.updateRangeWidths = function() {
-        var handle, pRunningTotal, range, total, _i, _j, _len, _len1, _ref, _ref1, _results;
-        this._width = $element.prop('clientWidth');
-        pRunningTotal = 0;
-        total = this.pTotal();
-        _ref = this.ranges;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          range = _ref[_i];
-          pRunningTotal += range.value();
-          range.update(pRunningTotal, total);
-        }
-        _ref1 = this.handles;
-        _results = [];
-        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-          handle = _ref1[_j];
-          _results.push(handle.updateWidth());
-        }
-        return _results;
-      };
-      return this.elementWidth = function() {
-        return this._width - this.handles.reduce(function(sum, handle) {
-          return sum + handle.width();
-        }, 0);
-      };
-    }
+    controller: sliderController
   };
-}).directive("sliderRange", function($parse) {
+};
+
+sliderRangeDirective = function($parse) {
+  var sliderRangeController;
+  sliderRangeController = function($scope) {
+    return {};
+  };
+  sliderRangeController.$inject = ["$scope"];
   return {
     template: "<div class=\"slider-range\" ng-transclude>\n</div>",
     require: ['^slider', 'sliderRange'],
     restrict: 'E',
     replace: true,
     transclude: true,
-    controller: function($scope) {
-      return {};
-    },
+    controller: sliderRangeController,
     compile: function() {
       return {
-        pre: function(scope, element, attrs, _arg) {
+        pre: function(scope, element, attrs, arg) {
           var range, slider, valueFn;
-          slider = _arg[0], range = _arg[1];
+          slider = arg[0], range = arg[1];
           valueFn = $parse(attrs.model);
           slider.ranges.push(range);
           scope.$watch(attrs.model, (function() {
@@ -97,9 +108,9 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
             }
           });
         },
-        post: function(scope, element, attrs, _arg) {
+        post: function(scope, element, attrs, arg) {
           var range, slider;
-          slider = _arg[0], range = _arg[1];
+          slider = arg[0], range = arg[1];
           return element.on('$destroy', function() {
             slider.ranges.splice(slider.ranges.indexOf(range), 1);
             return slider.updateRangeWidths();
@@ -108,14 +119,16 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
       };
     }
   };
-}).directive('sliderHandle', function($document) {
+};
+
+sliderHandleDirective = function($document) {
   return {
     replace: false,
     restrict: 'AC',
     require: ['^slider', '^sliderRange'],
-    link: function(scope, element, attrs, _arg, transclude) {
+    link: function(scope, element, attrs, arg, transclude) {
       var handle, nextRange, range, slider, startPleft, startPright, startX;
-      slider = _arg[0], range = _arg[1];
+      slider = arg[0], range = arg[1];
       nextRange = function() {
         return slider.ranges[slider.ranges.indexOf(range) + 1];
       };
@@ -125,47 +138,55 @@ angular.module("at.multirange-slider").directive("slider", function($parse, $com
           return this._width;
         },
         updateWidth: function() {
-          var _ref;
+          var ref;
           this._width = element.prop('clientWidth');
           element.css({
             float: 'right',
             marginRight: -handle.width() / 2 + 'px'
           });
-          return (_ref = nextRange()) != null ? _ref.adjustWidth(handle.width() / 2 + 'px') : void 0;
+          return (ref = nextRange()) != null ? ref.adjustWidth(handle.width() / 2 + 'px') : void 0;
         }
       });
       startX = 0;
       startPleft = startPright = 0;
-      return element.on("mousedown", function(event) {
-        var mousemove, mouseup, _ref;
+      return element.on('mousedown', function(event) {
+        var mousemove, mouseup, ref;
         if (nextRange() == null) {
           return;
         }
         mousemove = function(event) {
           return scope.$apply(function() {
-            var dp, _ref;
+            var dp, ref;
             dp = (event.screenX - startX) / slider.elementWidth() * slider.pTotal();
             if (dp < -startPleft || dp > startPright) {
               return;
             }
             range.value(startPleft + dp);
-            if ((_ref = nextRange()) != null) {
-              _ref.value(startPright - dp);
+            if ((ref = nextRange()) != null) {
+              ref.value(startPright - dp);
             }
             return slider.updateRangeWidths();
           });
         };
         mouseup = function() {
-          $document.unbind("mousemove", mousemove);
-          return $document.unbind("mouseup", mouseup);
+          $document.unbind('mousemove', mousemove);
+          return $document.unbind('mouseup', mouseup);
         };
         event.preventDefault();
         startX = event.screenX;
         startPleft = range.value();
-        startPright = (_ref = nextRange()) != null ? _ref.value() : void 0;
-        $document.on("mousemove", mousemove);
-        return $document.on("mouseup", mouseup);
+        startPright = (ref = nextRange()) != null ? ref.value() : void 0;
+        $document.on('mousemove', mousemove);
+        return $document.on('mouseup', mouseup);
       });
     }
   };
-});
+};
+
+sliderDirective.$inject = ['$parse', '$compile'];
+
+sliderRangeDirective.$inject = ['$parse'];
+
+sliderHandleDirective.$inject = ['$document'];
+
+angular.module('at.multirange-slider').directive('slider', sliderDirective).directive('sliderRange', sliderRangeDirective).directive('sliderHandle', sliderHandleDirective);
