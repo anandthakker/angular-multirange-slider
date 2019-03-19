@@ -118,9 +118,34 @@ sliderHandleDirective = ($document) ->
     startX = 0
     startPleft = startPright = 0
 
+    element.on 'touchstart', (event) ->
+      return unless nextRange()?
+      touchmove = (event) -> scope.$apply () ->
+        console.log('TouchMove: ')
+        console.log(event)
+        dp = (event.touches[0].clientX - startX) / slider.elementWidth() * slider.pTotal()
+        return if dp < -startPleft or dp > startPright
+        range.value(startPleft+dp)
+        nextRange()?.value(startPright-dp)
+        slider.updateRangeWidths()
+
+      touchend = ->
+        $document.unbind 'touchmove', touchmove
+        $document.unbind 'touchend', touchend
+
+      # Prevent default dragging of selected content
+      event.preventDefault()
+      startX = event.touches[0].clientX
+      startPleft = range.value()
+      startPright = nextRange()?.value()
+      $document.on 'touchmove', touchmove
+      $document.on 'touchend', touchend
+
     element.on 'mousedown', (event) ->
       return unless nextRange()?
       mousemove = (event) -> scope.$apply () ->
+        console.log('MouseMove: ')
+        console.log(event)
         dp = (event.screenX - startX) / slider.elementWidth() * slider.pTotal()
         return if dp < -startPleft or dp > startPright
         range.value(startPleft+dp)

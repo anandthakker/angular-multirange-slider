@@ -149,6 +149,38 @@ sliderHandleDirective = function($document) {
       });
       startX = 0;
       startPleft = startPright = 0;
+      element.on('touchstart', function(event) {
+        var ref, touchend, touchmove;
+        if (nextRange() == null) {
+          return;
+        }
+        touchmove = function(event) {
+          return scope.$apply(function() {
+            var dp, ref;
+            console.log('TouchMove: ');
+            console.log(event);
+            dp = (event.touches[0].clientX - startX) / slider.elementWidth() * slider.pTotal();
+            if (dp < -startPleft || dp > startPright) {
+              return;
+            }
+            range.value(startPleft + dp);
+            if ((ref = nextRange()) != null) {
+              ref.value(startPright - dp);
+            }
+            return slider.updateRangeWidths();
+          });
+        };
+        touchend = function() {
+          $document.unbind('touchmove', touchmove);
+          return $document.unbind('touchend', touchend);
+        };
+        event.preventDefault();
+        startX = event.touches[0].clientX;
+        startPleft = range.value();
+        startPright = (ref = nextRange()) != null ? ref.value() : void 0;
+        $document.on('touchmove', touchmove);
+        return $document.on('touchend', touchend);
+      });
       return element.on('mousedown', function(event) {
         var mousemove, mouseup, ref;
         if (nextRange() == null) {
@@ -157,6 +189,8 @@ sliderHandleDirective = function($document) {
         mousemove = function(event) {
           return scope.$apply(function() {
             var dp, ref;
+            console.log('MouseMove: ');
+            console.log(event);
             dp = (event.screenX - startX) / slider.elementWidth() * slider.pTotal();
             if (dp < -startPleft || dp > startPright) {
               return;

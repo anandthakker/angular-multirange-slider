@@ -81,7 +81,3 @@ For reference, the resulting markup from the first example:
       </div>
 </div>
 ```
-
-Todo
-------
-* Touch events

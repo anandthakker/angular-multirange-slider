@@ -17,7 +17,7 @@ gulp.task "clean", ->
 #
 # Compile coffescript
 #
-gulp.task "coffee", [], ->
+gulp.task "coffee", ->
   gulp.src(SRC_DIR + "/**/*.coffee")
   .pipe coffee({bare: true}).on('error', gutil.log)
   .pipe gulp.dest(BUILD_DIR)
@@ -25,14 +25,16 @@ gulp.task "coffee", [], ->
 #
 # Build task
 #
-gulp.task "build", ["clean"], ->
-  gulp.start('coffee')
+gulp.task "build", gulp.series(["clean"], ->
+  gulp.task('coffee')()
   gulp.src([SRC_DIR + "/**/*.css", SRC_DIR + "/**/*.html"])
   .pipe gulp.dest(BUILD_DIR)
+)
 
 
 #
 # Watch task
 #
-gulp.task "watch", ["build"], ->
-  gulp.watch "src/**/*.*", ["build"]
+gulp.task "watch", gulp.series(["build"], ->
+  gulp.watch "src/**/*.*", gulp.series("build")
+)
